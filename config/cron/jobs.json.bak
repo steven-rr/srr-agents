@@ -1,0 +1,32 @@
+[
+  {
+    "name": "morning-digest",
+    "schedule": { "kind": "cron", "expr": "0 5 * * *" },
+    "sessionTarget": "isolated",
+    "payload": {
+      "kind": "agentTurn",
+      "agentId": "orchestrator",
+      "message": "Run the Intel agent to generate today's morning digest of AI and aerospace news. Save the digest to workspace/digests/ with today's date. Send the digest summary to Discord."
+    }
+  },
+  {
+    "name": "weekly-scout",
+    "schedule": { "kind": "cron", "expr": "30 5 * * 1" },
+    "sessionTarget": "isolated",
+    "payload": {
+      "kind": "agentTurn",
+      "agentId": "orchestrator",
+      "message": "Run the Scout agent to scan for aerospace and software engineering jobs, analyze market trends, and generate the weekly career intelligence report. Save to workspace/reports/scout/. Send summary to Discord."
+    }
+  },
+  {
+    "name": "weekly-code-review",
+    "schedule": { "kind": "cron", "expr": "0 3 * * 1" },
+    "sessionTarget": "isolated",
+    "payload": {
+      "kind": "agentTurn",
+      "agentId": "orchestrator",
+      "message": "Run the Builder agent to crawl all of Steven's GitHub repos, check for dependency vulnerabilities, review recent commits for issues, and propose documentation updates. Save the report to workspace/reports/builder/. Send summary to Discord."
+    }
+  }
+]

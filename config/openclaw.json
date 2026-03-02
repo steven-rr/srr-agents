@@ -1,113 +1,112 @@
 {
-  "$schema": "https://docs.openclaw.ai/schema/openclaw.json",
-
-  "//": "SRR-AGENTS — Agent Empire Configuration",
-
-  "model": "claude-sonnet-4-6",
-
+  "env": {
+    "OPENAI_API_KEY": "${OPENROUTER_API_KEY}",
+    "OPENAI_BASE_URL": "https://openrouter.ai/api/v1"
+  },
   "agents": {
     "defaults": {
-      "model": "claude-sonnet-4-6",
+      "model": {
+        "primary": "openrouter/anthropic/claude-sonnet-4"
+      },
+      "workspace": "/home/node/workspace",
+      "compaction": {
+        "mode": "safeguard"
+      },
       "subagents": {
-        "model": "claude-sonnet-4-6",
-        "thinking": "disabled",
+        "maxConcurrent": 3,
         "maxSpawnDepth": 2,
         "maxChildrenPerAgent": 5,
-        "maxConcurrent": 3,
-        "runTimeoutSeconds": 1800,
-        "archiveAfterMinutes": 120
+        "archiveAfterMinutes": 120,
+        "model": "openrouter/moonshotai/kimi-k2.5",
+        "thinking": "disabled",
+        "runTimeoutSeconds": 1800
       }
     },
-
-    "agents": {
-      "orchestrator": {
+    "list": [
+      {
+        "id": "orchestrator",
+        "default": true,
         "name": "SRR Orchestrator",
-        "description": "Central command for the SRR agent empire. Routes tasks to Builder, Scout, and Intel agents.",
-        "model": "claude-sonnet-4-6",
-        "systemPrompt": "You are the SRR Orchestrator — the central command agent for Steven's agent empire. Your role is to:\n\n1. ROUTE incoming requests to the correct sub-agent (Builder, Scout, or Intel)\n2. COORDINATE multi-agent tasks that span multiple domains\n3. SYNTHESIZE results from sub-agents into clear, actionable summaries\n4. PRIORITIZE tasks based on urgency and impact\n\nYou have three sub-agents:\n- **builder**: Code review, GitHub operations, documentation, dependency checks\n- **scout**: Job market intelligence for aerospace and software careers\n- **intel**: AI and aerospace industry news, arXiv papers, HN monitoring\n\nWhen a request comes in, determine which agent(s) should handle it. If it spans multiple agents, spawn them in parallel and synthesize their results.\n\nAlways be concise. Steven values signal over noise.",
-        "skills": ["orchestrator"]
+        "model": {
+          "primary": "openrouter/anthropic/claude-sonnet-4"
+        },
+        "skills": [
+          "orchestrator"
+        ]
       },
-
-      "builder": {
+      {
+        "id": "builder",
         "name": "SRR Builder",
-        "description": "Code review, GitHub operations, documentation, and dependency security.",
-        "model": "claude-sonnet-4-6",
-        "systemPrompt": "You are the SRR Builder agent. You work on Steven's codebases. Your responsibilities:\n\n1. CRAWL GitHub repos and review code for improvements, bugs, and anti-patterns\n2. CREATE branches (never push to main) when you have improvement ideas\n3. GENERATE and UPDATE documentation (READMEs, inline docs)\n4. CHECK dependencies for known vulnerabilities\n5. PRESENT findings as clear, actionable suggestions\n\nRules:\n- NEVER push to main or master directly\n- ALWAYS create a feature branch for proposed changes (format: srr-builder/<description>)\n- Be specific about what you found and why it matters\n- Prioritize: security issues > bugs > performance > style",
-        "skills": ["builder"],
-        "tools": {
-          "allow": ["bash", "browser", "file_read", "file_write", "file_edit"]
-        }
+        "model": {
+          "primary": "openrouter/anthropic/claude-sonnet-4"
+        },
+        "skills": [
+          "builder"
+        ]
       },
-
-      "scout": {
+      {
+        "id": "scout",
         "name": "SRR Scout",
-        "description": "Career intelligence for aerospace and software engineering opportunities.",
-        "model": "claude-sonnet-4-6",
-        "systemPrompt": "You are the SRR Scout agent. You help Steven navigate career opportunities across two fields: aerospace engineering and software engineering.\n\nYour responsibilities:\n1. SEARCH for relevant job postings from top sources (LinkedIn, Indeed, company career pages, USAJobs for aerospace/defense)\n2. ANALYZE job market trends in both aerospace and software\n3. COMPARE career trajectories: compensation growth, role progression, industry stability\n4. IDENTIFY companies that blend both fields (SpaceX, Boeing software, Anduril, L3Harris, Palantir, etc.)\n5. DELIVER structured reports with actionable insights\n\nAlways include:\n- Salary ranges and growth potential\n- Required skills and certifications\n- Geographic hotspots\n- Industry trajectory (growing/stable/declining)\n- How Steven's dual background is an advantage",
-        "skills": ["scout"],
-        "tools": {
-          "allow": ["bash", "browser", "file_read", "file_write"]
-        }
+        "model": {
+          "primary": "openrouter/moonshotai/kimi-k2.5"
+        },
+        "skills": [
+          "scout"
+        ]
       },
-
-      "intel": {
+      {
+        "id": "intel",
         "name": "SRR Intel",
-        "description": "AI and aerospace industry intelligence — news, papers, and trend monitoring.",
-        "model": "claude-sonnet-4-6",
-        "systemPrompt": "You are the SRR Intel agent. You monitor the AI and aerospace industries and deliver high-signal intelligence to Steven.\n\nYour responsibilities:\n1. MONITOR arXiv for relevant papers (cs.AI, cs.LG, cs.CL, astro-ph, physics.space-ph)\n2. TRACK Hacker News for trending AI and aerospace discussions\n3. WATCH GitHub repos for significant releases and trending projects\n4. SCORE each item by relevance to Steven's interests (AI agents, LLMs, aerospace systems, space tech)\n5. DELIVER a morning digest: top 5-10 items, each with a 2-sentence summary and relevance score (1-10)\n\nRelevance scoring criteria:\n- AI agents / autonomous systems: high relevance\n- LLM advancements: high relevance\n- Aerospace engineering / space tech: high relevance\n- Intersection of AI + aerospace: highest relevance\n- General tech news: low relevance unless groundbreaking\n\nFormat the digest for quick scanning — Steven should get the signal in under 2 minutes of reading.",
-        "skills": ["intel"],
-        "tools": {
-          "allow": ["bash", "browser", "file_read", "file_write"]
-        }
-      }
-    }
-  },
-
-  "channels": {
-    "discord": {
-      "enabled": true,
-      "enableDMs": true,
-      "messageContent": true
-    }
-  },
-
-  "scheduling": {
-    "tasks": [
-      {
-        "name": "morning-digest",
-        "agent": "orchestrator",
-        "cron": "0 5 * * *",
-        "task": "Run the Intel agent to generate today's morning digest of AI and aerospace news. Save the digest to workspace/digests/ with today's date. Send the digest summary to Discord.",
-        "enabled": true
-      },
-      {
-        "name": "weekly-scout",
-        "agent": "orchestrator",
-        "cron": "30 5 * * 1",
-        "task": "Run the Scout agent to scan for aerospace and software engineering jobs, analyze market trends, and generate the weekly career intelligence report. Save to workspace/reports/scout/. Send summary to Discord.",
-        "enabled": true
-      },
-      {
-        "name": "weekly-code-review",
-        "agent": "orchestrator",
-        "cron": "0 3 * * 1",
-        "task": "Run the Builder agent to crawl all of Steven's GitHub repos, check for dependency vulnerabilities, review recent commits for issues, and update any stale READMEs. Save the report to workspace/reports/builder/. Send summary to Discord.",
-        "enabled": true
+        "model": {
+          "primary": "openrouter/moonshotai/kimi-k2.5"
+        },
+        "skills": [
+          "intel"
+        ]
       }
     ]
   },
-
   "tools": {
-    "bash": {
-      "enabled": true
-    },
-    "browser": {
-      "enabled": true
+    "allow": [
+      "exec",
+      "read",
+      "write",
+      "edit",
+      "browser"
+    ]
+  },
+  "commands": {
+    "native": "auto",
+    "nativeSkills": "auto",
+    "restart": true,
+    "ownerDisplay": "raw"
+  },
+  "session": {
+    "dmScope": "per-channel-peer",
+    "reset": {
+      "mode": "daily",
+      "atHour": 4
     }
   },
-
-  "memory": {
-    "enabled": true,
-    "path": "/home/node/workspace/.memory"
+  "channels": {
+    "discord": {
+      "enabled": true,
+      "token": "${DISCORD_BOT_TOKEN}",
+      "groupPolicy": "allowlist",
+      "dm": {
+        "enabled": true
+      },
+      "streaming": "off"
+    }
+  },
+  "gateway": {
+    "auth": {
+      "mode": "token",
+      "token": "975bba8381c250d9794e07fba0b1884f5421dcf2129aa2e0"
+    }
+  },
+  "meta": {
+    "lastTouchedVersion": "2026.3.1-beta.1",
+    "lastTouchedAt": "2026-03-02T07:40:28.250Z"
   }
 }

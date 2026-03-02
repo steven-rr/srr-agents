@@ -8,14 +8,12 @@ services:
     ports:
       - "18789:18789"
     volumes:
-      # Persistent agent memory and state (safe — contained to this dir)
-      - srr-home:/home/node
+      # Mount the entire .openclaw dir so atomic renames work
+      - ./config:/home/node/.openclaw:rw
+      # Skills inside .openclaw
+      - ./skills:/home/node/.openclaw/skills:rw
       # Workspace: the ONLY host directory agents can touch
       - ./workspace:/home/node/workspace:rw
-      # Config hot-reload: edit config without rebuilding
-      - ./config/openclaw.json:/home/node/.openclaw/openclaw.json:ro
-      # Skills hot-reload: add/edit skills without rebuilding
-      - ./skills:/home/node/.openclaw/skills:ro
     env_file:
       - .env
     environment:
@@ -31,7 +29,7 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
-      start_period: 10s
+      start_period: 15s
 
   # ── CLI utility ────────────────────────────────────────────────────────
   # For running one-off commands: docker compose run --rm srr-cli <command>
@@ -40,16 +38,11 @@ services:
     container_name: srr-agents-cli
     network_mode: "service:srr-gateway"
     volumes:
-      - srr-home:/home/node
+      - ./config:/home/node/.openclaw:rw
+      - ./skills:/home/node/.openclaw/skills:rw
       - ./workspace:/home/node/workspace:rw
-      - ./config/openclaw.json:/home/node/.openclaw/openclaw.json:ro
-      - ./skills:/home/node/.openclaw/skills:ro
     env_file:
       - .env
     profiles:
       - cli
     entrypoint: ["openclaw"]
-
-volumes:
-  srr-home:
-    name: srr-agents-home
