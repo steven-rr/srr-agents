@@ -20,6 +20,12 @@ services:
       - .env
     environment:
       - NODE_ENV=production
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+        reservations:
+          memory: 1G
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://127.0.0.1:18789/healthz"]
       interval: 30s

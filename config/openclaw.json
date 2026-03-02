@@ -63,20 +63,35 @@
     }
   },
 
+  "channels": {
+    "discord": {
+      "enabled": true,
+      "enableDMs": true,
+      "messageContent": true
+    }
+  },
+
   "scheduling": {
     "tasks": [
       {
         "name": "morning-digest",
         "agent": "orchestrator",
-        "cron": "0 7 * * *",
-        "task": "Run the Intel agent to generate today's morning digest of AI and aerospace news. Save the digest to workspace/digests/ with today's date. Then run Scout agent for a weekly job market pulse if today is Monday.",
+        "cron": "0 5 * * *",
+        "task": "Run the Intel agent to generate today's morning digest of AI and aerospace news. Save the digest to workspace/digests/ with today's date. Send the digest summary to Discord.",
+        "enabled": true
+      },
+      {
+        "name": "weekly-scout",
+        "agent": "orchestrator",
+        "cron": "30 5 * * 1",
+        "task": "Run the Scout agent to scan for aerospace and software engineering jobs, analyze market trends, and generate the weekly career intelligence report. Save to workspace/reports/scout/. Send summary to Discord.",
         "enabled": true
       },
       {
         "name": "weekly-code-review",
         "agent": "orchestrator",
-        "cron": "0 9 * * 1",
-        "task": "Run the Builder agent to crawl all of Steven's GitHub repos, check for dependency vulnerabilities, review recent commits for issues, and update any stale READMEs. Save the report to workspace/reports/.",
+        "cron": "0 3 * * 1",
+        "task": "Run the Builder agent to crawl all of Steven's GitHub repos, check for dependency vulnerabilities, review recent commits for issues, and update any stale READMEs. Save the report to workspace/reports/builder/. Send summary to Discord.",
         "enabled": true
       }
     ]
