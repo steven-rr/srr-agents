@@ -1,0 +1,8 @@
+.env
+.git
+workspace/repos
+workspace/reports
+workspace/digests
+workspace/docs
+.DS_Store
+README.md

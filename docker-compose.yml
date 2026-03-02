@@ -1,0 +1,49 @@
+services:
+  # ── OpenClaw Gateway ───────────────────────────────────────────────────
+  # The main process — runs the orchestrator and spawns sub-agents
+  srr-gateway:
+    build: .
+    container_name: srr-agents-gateway
+    restart: unless-stopped
+    ports:
+      - "18789:18789"
+    volumes:
+      # Persistent agent memory and state (safe — contained to this dir)
+      - srr-home:/home/node
+      # Workspace: the ONLY host directory agents can touch
+      - ./workspace:/home/node/workspace:rw
+      # Config hot-reload: edit config without rebuilding
+      - ./config/openclaw.json:/home/node/.openclaw/openclaw.json:ro
+      # Skills hot-reload: add/edit skills without rebuilding
+      - ./skills:/home/node/.openclaw/skills:ro
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:18789/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # ── CLI utility ────────────────────────────────────────────────────────
+  # For running one-off commands: docker compose run --rm srr-cli <command>
+  srr-cli:
+    build: .
+    container_name: srr-agents-cli
+    network_mode: "service:srr-gateway"
+    volumes:
+      - srr-home:/home/node
+      - ./workspace:/home/node/workspace:rw
+      - ./config/openclaw.json:/home/node/.openclaw/openclaw.json:ro
+      - ./skills:/home/node/.openclaw/skills:ro
+    env_file:
+      - .env
+    profiles:
+      - cli
+    entrypoint: ["openclaw"]
+
+volumes:
+  srr-home:
+    name: srr-agents-home
